@@ -809,18 +809,6 @@ public class VideoModule implements CameraModule,
 
         Log.v(TAG, "Audio Encoder selected = " +mAudioEncoder);
 
-        if(mParameters.isPowerModeSupported()) {
-            String powermode = mPreferences.getString(
-                    CameraSettings.KEY_POWER_MODE,
-                    mActivity.getString(R.string.pref_camera_powermode_default));
-            Log.v(TAG, "read videopreferences power mode =" +powermode);
-            String old_mode = mParameters.getPowerMode();
-            if(!old_mode.equals(powermode) && mPreviewing)
-                mRestartPreview = true;
-
-            mParameters.setPowerMode(powermode);
-        }
-
         // Set wavelet denoise mode
         if (mParameters.getSupportedDenoiseModes() != null) {
             String denoise = mPreferences.getString(CameraSettings.KEY_DENOISE,
@@ -2630,7 +2618,7 @@ public class VideoModule implements CameraModule,
             // We need to restart the preview if preview size is changed.
             Size size = mParameters.getPreviewSize();
             if (size.width != mDesiredPreviewWidth
-                    || size.height != mDesiredPreviewHeight || mRestartPreview) {
+                    || size.height != mDesiredPreviewHeight) {
 
                 stopPreview();
                 resizeForPreviewAspectRatio();
@@ -2638,7 +2626,6 @@ public class VideoModule implements CameraModule,
             } else {
                 setCameraParameters();
             }
-            mRestartPreview = false;
             mUI.updateOnScreenIndicators(mParameters, mPreferences);
             Storage.setSaveSDCard(
                 mPreferences.getString(CameraSettings.KEY_CAMERA_SAVEPATH, "0").equals("1"));

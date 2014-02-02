@@ -592,8 +592,8 @@ public class PhotoModule
         } catch (InterruptedException ex) {
             // ignore
         }
-        mCameraDevice.setPreviewDisplay(null);
         stopPreview();
+        mCameraDevice.setPreviewTexture(null);
     }
 
     private void setLocationPreference(String value) {

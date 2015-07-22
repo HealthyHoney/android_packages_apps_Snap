@@ -1185,7 +1185,9 @@ public class PhotoModule
                 return;
             }
             if (mIsImageCaptureIntent) {
-                stopPreview();
+                if (!mRefocus) {
+                    stopPreview();
+                }
             } else if (mSceneMode == CameraUtil.SCENE_MODE_HDR) {
                 mUI.showSwitcher();
                 mUI.setSwipingEnabled(true);
@@ -1355,6 +1357,7 @@ public class PhotoModule
                         }
 
                     } else {
+                        stopPreview();
                         mJpegImageData = jpegData;
                         if (!mQuickCapture) {
                             mUI.showCapturedImageForReview(jpegData, orientation, mMirror);

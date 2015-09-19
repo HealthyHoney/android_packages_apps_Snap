@@ -57,7 +57,6 @@ import com.android.camera.CameraDisabledException;
 import com.android.camera.CameraHolder;
 import com.android.camera.CameraManager;
 import com.android.camera.CameraSettings;
-import com.android.camera.ui.RotateTextToast;
 import com.android.camera.util.IntentHelper;
 import org.codeaurora.snapcam.R;
 
@@ -1062,7 +1061,7 @@ public class CameraUtil {
                 activity.finish();
             }
         } catch (ActivityNotFoundException e) {
-            RotateTextToast.makeText(activity, activity.getString(R.string.video_err),
+            Toast.makeText(activity, activity.getString(R.string.video_err),
                     Toast.LENGTH_SHORT).show();
         }
     }
@@ -1097,7 +1096,7 @@ public class CameraUtil {
                 activity.startActivity(mapsIntent);
             } catch (ActivityNotFoundException ex) {
                 Log.e(TAG, "Map view activity not found!", ex);
-                RotateTextToast.makeText(activity,
+                Toast.makeText(activity,
                         activity.getString(R.string.map_activity_not_found_err),
                         Toast.LENGTH_SHORT).show();
             }

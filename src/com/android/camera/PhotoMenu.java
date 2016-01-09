@@ -1170,7 +1170,7 @@ public class PhotoMenu extends MenuController
                       mPreferenceGroup.findPreference(CameraSettings.KEY_AE_BRACKET_HDR);
             if (aePref != null) {
                 if (notSame(aePref,CameraSettings.KEY_AE_BRACKET_HDR,"Off")) {
-                   RotateTextToast.makeText(mActivity,
+                   Toast.makeText(mActivity,
                                   R.string.flash_aebracket_message,Toast.LENGTH_SHORT).show();
                 }
             }

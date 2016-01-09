@@ -108,6 +108,7 @@ public class CameraUtil {
 
     // Fields from android.hardware.Camera.Parameters
     public static final String FOCUS_MODE_CONTINUOUS_PICTURE = "continuous-picture";
+    public static final String FOCUS_MODE_MW_CONTINUOUS_PICTURE = "mw_continuous-picture";
     public static final String RECORDING_HINT = "recording-hint";
     private static final String AUTO_EXPOSURE_LOCK_SUPPORTED = "auto-exposure-lock-supported";
     private static final String AUTO_WHITE_BALANCE_LOCK_SUPPORTED = "auto-whitebalance-lock-supported";
@@ -532,7 +533,7 @@ public class CameraUtil {
     public static int getOptimalPreviewSize(Activity currentActivity,
             Point[] sizes, double targetRatio) {
         // Use a very small tolerance because we want an exact match.
-        final double ASPECT_TOLERANCE = 0.01;
+        final double ASPECT_TOLERANCE = 0.02;
         if (sizes == null) return -1;
 
         int optimalSizeIndex = -1;
@@ -910,6 +911,19 @@ public class CameraUtil {
             }
         }
     }
+
+    public static boolean isLowLuminance(Parameters parameters) {
+        String lC = parameters.get(CameraSettings.KEY_LUMINANCE_CONITION);
+
+        if (lC != null) {
+            if (lC.equals(CameraSettings.LUMINANCE_CONITION_LOW)) {
+                Log.d(TAG, "Parameter " + CameraSettings.KEY_LUMINANCE_CONITION + "=" + CameraSettings.LUMINANCE_CONITION_LOW);
+                return true;
+            }
+        }
+        return false;
+   }
+
    public static String getFilpModeString(int value){
         switch(value){
             case 0:

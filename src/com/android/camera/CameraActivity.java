@@ -117,6 +117,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.android.camera.CameraManager.CameraOpenErrorCallback;
+import com.android.camera.SDCard;
 
 import android.media.AudioManager;
 
@@ -217,6 +218,7 @@ public class CameraActivity extends Activity
     private ViewGroup mUndoDeletionBar;
     private boolean mIsUndoingDeletion = false;
     private boolean mIsEditActivityInProgress = false;
+    private boolean mPaused = true;
     private View mPreviewCover;
     private FrameLayout mPreviewContentLayout;
 
@@ -249,6 +251,7 @@ public class CameraActivity extends Activity
     private int mShutterVol;
     private int mOriginalMasterVol;
     private WakeLock mWakeLock;
+    private Context mContext;
 
     private class MyOrientationEventListener
             extends OrientationEventListener {
@@ -1341,7 +1344,7 @@ public class CameraActivity extends Activity
 
                     @Override
                     protected void onPostExecute(MediaDetails mediaDetails) {
-                        if (mediaDetails != null) {
+                        if ((mediaDetails != null) && !mPaused) {
                             DetailsDialog.create(CameraActivity.this, mediaDetails).show();
                         }
                     }
@@ -1410,57 +1413,22 @@ public class CameraActivity extends Activity
         }
         GcamHelper.init(getContentResolver());
 
+        mContext = getApplicationContext();
+        SDCard.initialize(mContext);
+
+/*
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         mOriginalMasterVol = mAudioManager.getMasterVolume();
         mShutterVol =  SystemProperties.getInt("persist.camera.snapshot.volume", -1);
         if (mShutterVol >= 0 && mShutterVol <= 100 )
             mAudioManager.setMasterVolume(mShutterVol,0);
+*/
 
         getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
-        setContentView(R.layout.camera_filmstrip);
 
-        mActionBar = getActionBar();
-        mActionBar.addOnMenuVisibilityListener(this);
-
-        if (ApiHelper.HAS_ROTATION_ANIMATION) {
-            setRotationAnimation();
-        }
-
-        mMainHandler = new MainHandler(getMainLooper());
-
-        mAboveFilmstripControlLayout =
-                (FrameLayout) findViewById(R.id.camera_above_filmstrip_layout);
-        mAboveFilmstripControlLayout.setFitsSystemWindows(true);
-        // Hide action bar first since we are in full screen mode first, and
-        // switch the system UI to lights-out mode.
-        this.setSystemBarsVisibility(false);
-        mPanoramaManager = AppManagerFactory.getInstance(this)
-                .getPanoramaStitchingManager();
-        mPlaceholderManager = AppManagerFactory.getInstance(this)
-                .getGcamProcessingManager();
-        mPanoramaManager.addTaskListener(mStitchingListener);
-        mPlaceholderManager.addTaskListener(mPlaceholderListener);
         LayoutInflater inflater = getLayoutInflater();
         View rootLayout = inflater.inflate(R.layout.camera, null, false);
         mCameraModuleRootView = rootLayout.findViewById(R.id.camera_app_root);
-        mPanoStitchingPanel = findViewById(R.id.pano_stitching_progress_panel);
-        mBottomProgress = (ProgressBar) findViewById(R.id.pano_stitching_progress_bar);
-        mCameraPreviewData = new CameraPreviewData(rootLayout,
-                FilmStripView.ImageData.SIZE_FULL,
-                FilmStripView.ImageData.SIZE_FULL);
-        // Put a CameraPreviewData at the first position.
-        mWrappedDataAdapter = new FixedFirstDataAdapter(
-                new CameraDataAdapter(new ColorDrawable(
-                        getResources().getColor(R.color.photo_placeholder))),
-                mCameraPreviewData);
-        mFilmStripView = (FilmStripView) findViewById(R.id.filmstrip_view);
-        mFilmStripView.setViewGap(
-                getResources().getDimensionPixelSize(R.dimen.camera_film_strip_gap));
-        mPanoramaViewHelper = new PanoramaViewHelper(this);
-        mPanoramaViewHelper.onCreate();
-        mFilmStripView.setPanoramaViewHelper(mPanoramaViewHelper);
-        // Set up the camera preview first so the preview shows up ASAP.
-        mFilmStripView.setListener(mFilmStripListener);
 
         int moduleIndex = -1;
         if (MediaStore.INTENT_ACTION_VIDEO_CAMERA.equals(getIntent().getAction())
@@ -1492,6 +1460,48 @@ public class CameraActivity extends Activity
         mOrientationListener = new MyOrientationEventListener(this);
         setModuleFromIndex(moduleIndex);
         mCurrentModule.init(this, mCameraModuleRootView);
+
+        setContentView(R.layout.camera_filmstrip);
+
+        mActionBar = getActionBar();
+        mActionBar.addOnMenuVisibilityListener(this);
+
+        if (ApiHelper.HAS_ROTATION_ANIMATION) {
+            setRotationAnimation();
+        }
+
+        mMainHandler = new MainHandler(getMainLooper());
+
+        mAboveFilmstripControlLayout =
+                (FrameLayout) findViewById(R.id.camera_above_filmstrip_layout);
+        mAboveFilmstripControlLayout.setFitsSystemWindows(true);
+        // Hide action bar first since we are in full screen mode first, and
+        // switch the system UI to lights-out mode.
+        this.setSystemBarsVisibility(false);
+        mPanoramaManager = AppManagerFactory.getInstance(this)
+                .getPanoramaStitchingManager();
+        mPlaceholderManager = AppManagerFactory.getInstance(this)
+                .getGcamProcessingManager();
+        mPanoramaManager.addTaskListener(mStitchingListener);
+        mPlaceholderManager.addTaskListener(mPlaceholderListener);
+        mPanoStitchingPanel = findViewById(R.id.pano_stitching_progress_panel);
+        mBottomProgress = (ProgressBar) findViewById(R.id.pano_stitching_progress_bar);
+        mCameraPreviewData = new CameraPreviewData(rootLayout,
+                FilmStripView.ImageData.SIZE_FULL,
+                FilmStripView.ImageData.SIZE_FULL);
+        // Put a CameraPreviewData at the first position.
+        mWrappedDataAdapter = new FixedFirstDataAdapter(
+                new CameraDataAdapter(new ColorDrawable(
+                        getResources().getColor(R.color.photo_placeholder))),
+                mCameraPreviewData);
+        mFilmStripView = (FilmStripView) findViewById(R.id.filmstrip_view);
+        mFilmStripView.setViewGap(
+                getResources().getDimensionPixelSize(R.dimen.camera_film_strip_gap));
+        mPanoramaViewHelper = new PanoramaViewHelper(this);
+        mPanoramaViewHelper.onCreate();
+        mFilmStripView.setPanoramaViewHelper(mPanoramaViewHelper);
+        // Set up the camera preview first so the preview shows up ASAP.
+        mFilmStripView.setListener(mFilmStripListener);
 
         if (!mSecureCamera) {
             mDataAdapter = mWrappedDataAdapter;
@@ -1596,8 +1606,10 @@ public class CameraActivity extends Activity
 
     @Override
     public void onPause() {
+/*
         if (mShutterVol >= 0 && mShutterVol <= 100)
             mAudioManager.setMasterVolume(mOriginalMasterVol,0);
+*/
         // Delete photos that are pending deletion
         performDeletion();
         mOrientationListener.disable();
@@ -1605,6 +1617,7 @@ public class CameraActivity extends Activity
         super.onPause();
         mCurrentModule.onPauseAfterSuper();
 
+        mPaused = true;
         mLocalImagesObserver.setActivityPaused(true);
         mLocalVideosObserver.setActivityPaused(true);
     }
@@ -1621,15 +1634,17 @@ public class CameraActivity extends Activity
 
     @Override
     public void onResume() {
+/*
         if (mShutterVol >= 0 && mShutterVol <= 100)
             mAudioManager.setMasterVolume(mShutterVol,0);
-
+*/
         UsageStatistics.onEvent(UsageStatistics.COMPONENT_CAMERA,
                 UsageStatistics.ACTION_FOREGROUNDED, this.getClass().getSimpleName());
 
         mOrientationListener.enable();
         mCurrentModule.onResumeBeforeSuper();
         super.onResume();
+        mPaused = false;
         mCurrentModule.onResumeAfterSuper();
 
         setSwipingEnabled(true);
@@ -1684,8 +1699,10 @@ public class CameraActivity extends Activity
             mWakeLock.release();
             Log.d(TAG, "wake lock release");
         }
+/*
         if (mShutterVol >= 0 && mShutterVol <= 100)
             mAudioManager.setMasterVolume(mOriginalMasterVol,0);
+*/
         if (mSecureCamera) {
             unregisterReceiver(mScreenOffReceiver);
         }

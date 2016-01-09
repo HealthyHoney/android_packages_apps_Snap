@@ -149,6 +149,7 @@ public class PhotoMenu extends MenuController
                 CameraSettings.KEY_WHITE_BALANCE,
                 CameraSettings.KEY_FOCUS_MODE,
                 CameraSettings.KEY_FOCUS_TIME,
+                CameraSettings.KEY_SHUTTER_SPEED,
                 CameraSettings.KEY_REDEYE_REDUCTION,
                 CameraSettings.KEY_POWER_SHUTTER,
                 CameraSettings.KEY_MAX_BRIGHTNESS
@@ -168,6 +169,7 @@ public class PhotoMenu extends MenuController
                 CameraSettings.KEY_WHITE_BALANCE,
                 CameraSettings.KEY_FOCUS_MODE,
                 CameraSettings.KEY_FOCUS_TIME,
+                CameraSettings.KEY_SHUTTER_SPEED,
                 CameraSettings.KEY_REDEYE_REDUCTION,
                 CameraSettings.KEY_POWER_SHUTTER,
                 CameraSettings.KEY_MAX_BRIGHTNESS,
@@ -504,6 +506,11 @@ public class PhotoMenu extends MenuController
             return false;
         Rect rec = new Rect();
         mUI.getPreviewMenuLayout().getChildAt(0).getHitRect(rec);
+        if (View.LAYOUT_DIRECTION_RTL == TextUtils
+                .getLayoutDirectionFromLocale(Locale.getDefault())) {
+            rec.left = mUI.getRootView().getWidth() - (rec.right-rec.left);
+            rec.right = mUI.getRootView().getWidth();
+        }
         rec.top += (int) mUI.getPreviewMenuLayout().getY();
         rec.bottom += (int) mUI.getPreviewMenuLayout().getY();
         return rec.contains((int) ev.getX(), (int) ev.getY());
@@ -546,7 +553,6 @@ public class PhotoMenu extends MenuController
                 mPrevSavedCDS = cds;
             }
 
-            mListMenu.setPreferenceEnabled(CameraSettings.KEY_TNR_MODE, false);
             if ((tnr != null) && !mActivity.getString(R.string.
                     pref_camera_tnr_default).equals(tnr)) {
                 mListMenu.setPreferenceEnabled(CameraSettings.KEY_CDS_MODE, false);
@@ -1162,9 +1168,11 @@ public class PhotoMenu extends MenuController
         } else if (notSame(pref,CameraSettings.KEY_FLASH_MODE,"Off")) {
             ListPreference aePref =
                       mPreferenceGroup.findPreference(CameraSettings.KEY_AE_BRACKET_HDR);
-            if (notSame(aePref,CameraSettings.KEY_AE_BRACKET_HDR,"Off")) {
-               Toast.makeText(mActivity,
-                              R.string.flash_aebracket_message,Toast.LENGTH_SHORT).show();
+            if (aePref != null) {
+                if (notSame(aePref,CameraSettings.KEY_AE_BRACKET_HDR,"Off")) {
+                   RotateTextToast.makeText(mActivity,
+                                  R.string.flash_aebracket_message,Toast.LENGTH_SHORT).show();
+                }
             }
         } else if (notSame(pref, CameraSettings.KEY_LONGSHOT, mSettingOff)) {
             ListPreference advancefeaturePref =

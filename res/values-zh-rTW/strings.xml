@@ -110,8 +110,6 @@
     <string name="setting_off" msgid="6782191065550276632">"關閉"</string>
     <string name="setting_on" msgid="9086728135773197891">"開啟"</string>
     <string name="pref_video_quality_title" msgid="5887153490982738588">"影片畫質"</string>
-    <string name="pref_video_quality_entry_high" msgid="1613578418842803393">"高"</string>
-    <string name="pref_video_quality_entry_low" msgid="737962621299050603">"低"</string>
     <string name="pref_video_time_lapse_frame_interval_title" msgid="4975260837607993569">"延時攝影"</string>
     <string name="pref_camera_settings_category" msgid="4274141528139077830">"相機設定"</string>
     <string name="pref_camcorder_settings_category" msgid="3553148484755353397">"攝錄影機設定"</string>
@@ -292,5 +290,4 @@
     <string name="cannot_load_image" msgid="4100136187076585580">"無法載入圖片！"</string>
     <string name="switch_photo_filmstrip" msgid="1448511001008888767">"幻燈片檢視"</string>
     <string name="setting_wallpaper" msgid="2397759659347872725">"正在設定桌布"</string>
-    <string name="pref_camera_longshot_title">連拍</string>
 </resources>

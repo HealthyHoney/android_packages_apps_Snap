@@ -47,15 +47,15 @@
 
     <!-- Set's manufacturer specific parameters on startup.
          Example: lge-camera=1;cam-mode=0 -->
-    <string name="manufacturer_key_values"></string>
+    <string name="manufacturer_key_values">lge-camera=1</string>
 
     <!-- Use following iso parameter.
          Example: lg-iso
                   lg-iso-values -->
-    <string name="key_iso">iso</string>
-    <string name="key_iso_values">iso-values</string>
+    <string name="key_iso">lg-iso</string>
+    <string name="key_iso_values">lg-iso-values</string>
 
     <!-- ISO values use numbers.
          Example: 50 instead of ISO50 -->
-    <bool name="iso_values_use_numbers">false</bool>
+    <bool name="iso_values_use_numbers">true</bool>
 </resources>

@@ -30,10 +30,10 @@
     <bool name="enable_warped_pano_preview">true</bool>
 
     <!-- Opens back camera using openLegacy() -->
-    <bool name="back_camera_open_legacy">false</bool>
+    <bool name="back_camera_open_legacy">true</bool>
 
     <!-- Opens front camera using openLegacy() -->
-    <bool name="front_camera_open_legacy">false</bool>
+    <bool name="front_camera_open_legacy">true</bool>
 
     <!-- Restart preview for back camera onPictureTaken -->
     <bool name="back_camera_restart_preview_onPictureTaken">false</bool>
@@ -47,18 +47,18 @@
 
     <!-- Set's manufacturer specific parameters on startup.
          Example: lge-camera=1;cam-mode=0 -->
-    <string name="manufacturer_key_values">lge-camera=1</string>
+    <string name="manufacturer_key_values"></string>
 
     <!-- Use following iso parameter.
          Example: lg-iso
                   lg-iso-values -->
-    <string name="key_iso">lg-iso</string>
-    <string name="key_iso_values">lg-iso-values</string>
+    <string name="key_iso">iso</string>
+    <string name="key_iso_values">iso-values</string>
 
     <!-- ISO values use numbers.
          Example: 50 instead of ISO50 -->
-    <bool name="iso_values_use_numbers">true</bool>
+    <bool name="iso_values_use_numbers">false</bool>
 
     <!-- Enable support for LGE HDR -->
-    <bool name="lge_hdr_mode">true</bool>
+    <bool name="lge_hdr_mode">false</bool>
 </resources>

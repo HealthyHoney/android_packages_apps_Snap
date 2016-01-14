@@ -73,7 +73,6 @@ import com.android.camera.exif.ExifTag;
 import com.android.camera.exif.Rational;
 import com.android.camera.ui.CountDownView.OnCountDownFinishedListener;
 import com.android.camera.ui.ModuleSwitcher;
-import com.android.camera.ui.RotateTextToast;
 import com.android.camera.util.ApiHelper;
 import com.android.camera.util.CameraUtil;
 import com.android.camera.util.GcamHelper;
@@ -604,8 +603,8 @@ public class PhotoModule
         } catch (InterruptedException ex) {
             // ignore
         }
-        mCameraDevice.setPreviewDisplay(null);
         stopPreview();
+        mCameraDevice.setPreviewTexture(null);
     }
 
     private void setLocationPreference(String value) {
@@ -793,15 +792,17 @@ public class PhotoModule
             return;
         }
         setPreviewFrameLayoutCameraOrientation();
-        Size size = mParameters.getPreviewSize();
-        Log.i(TAG, "Using preview width = " + size.width + "& height = " + size.height);
-        mUI.setAspectRatio((float) size.width / size.height);
+        if (mParameters != null) {
+            Size size = mParameters.getPictureSize();
+            Log.e(TAG,"Width = "+ size.width+ "Height = "+size.height);
+            mUI.setAspectRatio((float) size.width / size.height);
+        }
     }
 
     @Override
     public void onSwitchSavePath() {
         mUI.setPreference(CameraSettings.KEY_CAMERA_SAVEPATH, "1");
-        RotateTextToast.makeText(mActivity, R.string.on_switch_save_path_to_sdcard,
+        Toast.makeText(mActivity, R.string.on_switch_save_path_to_sdcard,
                 Toast.LENGTH_SHORT).show();
     }
 
@@ -957,7 +958,7 @@ public class PhotoModule
                     + " cached=" + info[Debug.MEMINFO_CACHED] * 1024
                     + " threshold=" + SECONDARY_SERVER_MEM);
             mLongshotActive = false;
-            RotateTextToast.makeText(mActivity,R.string.msg_cancel_longshot_for_limited_memory,
+            Toast.makeText(mActivity,R.string.msg_cancel_longshot_for_limited_memory,
                 Toast.LENGTH_SHORT).show();
             return true;
         }
@@ -1196,7 +1197,9 @@ public class PhotoModule
                 return;
             }
             if (mIsImageCaptureIntent) {
-                stopPreview();
+                if (!mRefocus) {
+                    stopPreview();
+                }
             } else if (mSceneMode == CameraUtil.SCENE_MODE_HDR) {
                 mUI.showSwitcher();
                 mUI.setSwipingEnabled(true);
@@ -1384,6 +1387,7 @@ public class PhotoModule
                         }
 
                     } else {
+                        stopPreview();
                         mJpegImageData = jpegData;
                         if (!mQuickCapture) {
                             mUI.showCapturedImageForReview(jpegData, orientation, mMirror);
@@ -1640,6 +1644,7 @@ public class PhotoModule
                         new JpegPictureCallback(loc));
             }
         } else {
+            setCameraState(SNAPSHOT_IN_PROGRESS);
             mCameraDevice.enableShutterSound(!mRefocus);
             mCameraDevice.takePicture(mHandler,
                     new ShutterCallback(!animateBefore),
@@ -1818,7 +1823,7 @@ public class PhotoModule
                                    null, null, null, colorEffect,
                                    sceneMode, redeyeReduction, aeBracketing);
             disableLongShot = true;
-            RotateTextToast.makeText(mActivity, R.string.advanced_capture_disable_continuous_shot,
+            Toast.makeText(mActivity, R.string.advanced_capture_disable_continuous_shot,
                     Toast.LENGTH_LONG).show();
         }
 
@@ -2699,6 +2704,8 @@ public class PhotoModule
             mFocusManager.setAeAwbLock(false); // Unlock AE and AWB.
         }
 
+        if (mFocusManager == null) initializeFocusManager();
+
         setCameraParameters(UPDATE_PARAM_ALL);
 
         mCameraDevice.startPreview();
@@ -3184,7 +3191,7 @@ public class PhotoModule
         String auto_hdr = mPreferences.getString(CameraSettings.KEY_AUTO_HDR,
                                        mActivity.getString(R.string.pref_camera_hdr_default));
         if (CameraUtil.isAutoHDRSupported(mParameters)) {
-            mParameters.set("auto-hdr-enable",auto_hdr);
+            mParameters.set("auto-hdr-supported",auto_hdr);
             if (auto_hdr.equals("enable")) {
                 mActivity.runOnUiThread(new Runnable() {
                     public void run() {
@@ -3240,7 +3247,7 @@ public class PhotoModule
             if (!pictureFormat.equals(PIXEL_FORMAT_JPEG)) {
                 mActivity.runOnUiThread(new Runnable() {
                     public void run() {
-                        RotateTextToast.makeText(mActivity, R.string.error_app_unsupported_raw,
+                        Toast.makeText(mActivity, R.string.error_app_unsupported_raw,
                                 Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -3839,9 +3846,15 @@ public class PhotoModule
                     double focuspos = 0;
                     String focusStr = input.getText().toString();
                     if (focusStr.length() > 0) {
-                        focuspos = Double.parseDouble(focusStr);
+                        try {
+                            focuspos = Double.parseDouble(focusStr);
+                        } catch (NumberFormatException e) {
+                            Log.w(TAG, "Input foucspos " + focuspos + " is invalid");
+                            focuspos = maxFocusPos + 1f;
+                        }
+
                     } else {
-                        RotateTextToast.makeText(mActivity, "Invalid focus position",
+                        Toast.makeText(mActivity, "Invalid focus position",
                                 Toast.LENGTH_SHORT).show();
                         return;
                     }
@@ -3855,7 +3868,7 @@ public class PhotoModule
                         updateCommonManual3ASettings();
                         onSharedPreferenceChanged();
                     } else {
-                        RotateTextToast.makeText(mActivity, "Invalid focus position",
+                        Toast.makeText(mActivity, "Invalid focus position",
                                 Toast.LENGTH_SHORT).show();
                     }
                 }
@@ -3932,7 +3945,7 @@ public class PhotoModule
                         updateCommonManual3ASettings();
                         onSharedPreferenceChanged();
                     } else {
-                        RotateTextToast.makeText(mActivity, "Invalid CCT", Toast.LENGTH_SHORT)
+                        Toast.makeText(mActivity, "Invalid CCT", Toast.LENGTH_SHORT)
                                 .show();
                     }
                 }
@@ -3978,10 +3991,20 @@ public class PhotoModule
                     String Rgain = Rinput.getText().toString();
                     String Ggain = Ginput.getText().toString();
                     String Bgain = Binput.getText().toString();
+                    double Rgainf = -1;
+                    double Ggainf = -1;
+                    double Bgainf = -1;
                     if (Rgain.length() > 0 && Ggain.length() > 0 && Bgain.length() > 0) {
-                        double Rgainf = Double.parseDouble(Rgain);
-                        double Ggainf = Double.parseDouble(Ggain);
-                        double Bgainf = Double.parseDouble(Bgain);
+                        try {
+                            Rgainf = Double.parseDouble(Rgain);
+                            Ggainf = Double.parseDouble(Ggain);
+                            Bgainf = Double.parseDouble(Bgain);
+                        } catch (NumberFormatException e) {
+                            Log.w(TAG, "Input RGB gain is invalid");
+                            Rgainf = maxGain + 1f;
+                            Ggainf = maxGain + 1f;
+                            Bgainf = maxGain + 1f;
+                        }
                         String RGBGain = Rgain + "," + Ggain + "," + Bgain;
                         if (Rgainf <= maxGain && Rgainf >= minGain &&
                             Ggainf <= maxGain && Ggainf >= minGain &&
@@ -3995,11 +4018,11 @@ public class PhotoModule
                             updateCommonManual3ASettings();
                             onSharedPreferenceChanged();
                         } else {
-                            RotateTextToast.makeText(mActivity, "Invalid RGB gains",
+                            Toast.makeText(mActivity, "Invalid RGB gains",
                                     Toast.LENGTH_SHORT).show();
                         }
                     } else {
-                        RotateTextToast.makeText(mActivity, "Invalid RGB gains",
+                        Toast.makeText(mActivity, "Invalid RGB gains",
                                     Toast.LENGTH_SHORT).show();
                     }
                 }
@@ -4087,7 +4110,7 @@ public class PhotoModule
                         updateCommonManual3ASettings();
                         onSharedPreferenceChanged();
                     } else {
-                        RotateTextToast.makeText(mActivity, "Invalid ISO", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(mActivity, "Invalid ISO", Toast.LENGTH_SHORT).show();
                     }
                 }
             });
@@ -4105,7 +4128,12 @@ public class PhotoModule
                     double newExpTime = -1;
                     String expTime = ExpTimeInput.getText().toString();
                     if (expTime.length() > 0) {
-                        newExpTime = Double.parseDouble(expTime);
+                        try {
+                            newExpTime = Double.parseDouble(expTime);
+                        } catch (NumberFormatException e) {
+                            Log.w(TAG, "Input expTime " + expTime + " is invalid");
+                            newExpTime = Double.parseDouble(maxExpTime) + 1f;
+                        }
                     }
                     if (newExpTime <= Double.parseDouble(maxExpTime) &&
                         newExpTime >= Double.parseDouble(minExpTime)) {
@@ -4118,7 +4146,7 @@ public class PhotoModule
                         updateCommonManual3ASettings();
                         onSharedPreferenceChanged();
                     } else {
-                        RotateTextToast.makeText(mActivity, "Invalid exposure time",
+                        Toast.makeText(mActivity, "Invalid exposure time",
                                 Toast.LENGTH_SHORT).show();
                     }
                 }
@@ -4151,7 +4179,13 @@ public class PhotoModule
                     double newExpTime = -1;
                     String expTime = ExpTimeInput.getText().toString();
                     if (expTime.length() > 0) {
-                        newExpTime = Double.parseDouble(expTime);
+                        try {
+                            newExpTime = Double.parseDouble(expTime);
+                        } catch (NumberFormatException e) {
+                            Log.w(TAG, "input newExpTime " + newExpTime + " is invalid");
+                            newExpTime = Double.parseDouble(maxExpTime) + 1f;
+                        }
+
                     }
                     if (newISO <= maxISO && newISO >= minISO &&
                         newExpTime <= Double.parseDouble(maxExpTime) &&
@@ -4165,7 +4199,7 @@ public class PhotoModule
                         updateCommonManual3ASettings();
                         onSharedPreferenceChanged();
                     } else {
-                        RotateTextToast.makeText(mActivity, "Invalid input", Toast.LENGTH_SHORT)
+                        Toast.makeText(mActivity, "Invalid input", Toast.LENGTH_SHORT)
                                 .show();
                     }
                 }
@@ -4311,8 +4345,7 @@ public class PhotoModule
     }
 
     private void showTapToFocusToast() {
-        // TODO: Use a toast?
-        new RotateTextToast(mActivity, R.string.tap_to_focus, 0).show();
+        Toast.makeText(mActivity, R.string.tap_to_focus,Toast.LENGTH_SHORT).show();
         // Clear the preference.
         Editor editor = mPreferences.edit();
         editor.putBoolean(CameraSettings.KEY_CAMERA_FIRST_USE_HINT_SHOWN, false);

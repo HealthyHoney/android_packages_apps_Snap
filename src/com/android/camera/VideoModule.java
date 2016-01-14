@@ -64,7 +64,6 @@ import com.android.camera.CameraManager.CameraPictureCallback;
 import com.android.camera.CameraManager.CameraProxy;
 import com.android.camera.app.OrientationManager;
 import com.android.camera.exif.ExifInterface;
-import com.android.camera.ui.RotateTextToast;
 import com.android.camera.util.AccessibilityUtils;
 import com.android.camera.util.ApiHelper;
 import com.android.camera.util.CameraUtil;
@@ -409,7 +408,7 @@ public class VideoModule implements CameraModule,
             if (action.equals(Intent.ACTION_MEDIA_EJECT)) {
                 stopVideoRecording();
             } else if (action.equals(Intent.ACTION_MEDIA_SCANNER_STARTED)) {
-                RotateTextToast.makeText(mActivity,
+                Toast.makeText(mActivity,
                         mActivity.getResources().getString(R.string.wait), Toast.LENGTH_LONG)
                         .show();
             }
@@ -814,18 +813,6 @@ public class VideoModule implements CameraModule,
 
         Log.v(TAG, "Audio Encoder selected = " +mAudioEncoder);
 
-        if(mParameters.isPowerModeSupported()) {
-            String powermode = mPreferences.getString(
-                    CameraSettings.KEY_POWER_MODE,
-                    mActivity.getString(R.string.pref_camera_powermode_default));
-            Log.v(TAG, "read videopreferences power mode =" +powermode);
-            String old_mode = mParameters.getPowerMode();
-            if(!old_mode.equals(powermode) && mPreviewing)
-                mRestartPreview = true;
-
-            mParameters.setPowerMode(powermode);
-        }
-
         // Set wavelet denoise mode
         if (mParameters.getSupportedDenoiseModes() != null) {
             String denoise = mPreferences.getString(CameraSettings.KEY_DENOISE,
@@ -1085,7 +1072,7 @@ public class VideoModule implements CameraModule,
     @Override
     public void onSwitchSavePath() {
         mUI.setPreference(CameraSettings.KEY_CAMERA_SAVEPATH, "1");
-        RotateTextToast.makeText(mActivity, R.string.on_switch_save_path_to_sdcard,
+        Toast.makeText(mActivity, R.string.on_switch_save_path_to_sdcard,
                 Toast.LENGTH_SHORT).show();
     }
 
@@ -1129,7 +1116,7 @@ public class VideoModule implements CameraModule,
         mUI.initDisplayChangeListener();
         // Initializing it here after the preview is started.
         mUI.initializeZoom(mParameters);
-
+        mUI.setPreviewGesturesVideoUI();
         keepScreenOnAwhile();
 
         mOrientationManager.resume();
@@ -1527,7 +1514,7 @@ public class VideoModule implements CameraModule,
                             "mMaxFrameWidth = " + videoEncoder.mMaxFrameWidth + " , " +
                             "mMaxFrameHeight = " + videoEncoder.mMaxFrameHeight);
                     mUnsupportedResolution = true;
-                    RotateTextToast.makeText(mActivity, R.string.error_app_unsupported,
+                    Toast.makeText(mActivity, R.string.error_app_unsupported,
                             Toast.LENGTH_LONG).show();
                     return;
                 }
@@ -1812,7 +1799,7 @@ public class VideoModule implements CameraModule,
             if (mMediaRecorderRecording) onStopVideoRecording();
 
             // Show the toast.
-            RotateTextToast.makeText(mActivity, R.string.video_reach_size_limit,
+            Toast.makeText(mActivity, R.string.video_reach_size_limit,
                     Toast.LENGTH_LONG).show();
         }
     }
@@ -1851,7 +1838,7 @@ public class VideoModule implements CameraModule,
 
         if( mUnsupportedHFRVideoSize == true) {
             Log.e(TAG, "Unsupported HFR and video size combinations");
-            RotateTextToast.makeText(mActivity,R.string.error_app_unsupported_hfr,
+            Toast.makeText(mActivity,R.string.error_app_unsupported_hfr,
                     Toast.LENGTH_SHORT).show();
             mStartRecPending = false;
             return false;
@@ -1859,7 +1846,7 @@ public class VideoModule implements CameraModule,
 
         if (mUnsupportedHSRVideoSize == true) {
             Log.e(TAG, "Unsupported HSR and video size combinations");
-            RotateTextToast.makeText(mActivity,R.string.error_app_unsupported_hsr,
+            Toast.makeText(mActivity,R.string.error_app_unsupported_hsr,
                     Toast.LENGTH_SHORT).show();
             mStartRecPending = false;
             return false;
@@ -1867,7 +1854,7 @@ public class VideoModule implements CameraModule,
 
         if( mUnsupportedHFRVideoCodec == true) {
             Log.e(TAG, "Unsupported HFR and video codec combinations");
-            RotateTextToast.makeText(mActivity, R.string.error_app_unsupported_hfr_codec,
+            Toast.makeText(mActivity, R.string.error_app_unsupported_hfr_codec,
                     Toast.LENGTH_SHORT).show();
             mStartRecPending = false;
             return false;
@@ -2279,7 +2266,7 @@ public class VideoModule implements CameraModule,
                         mActivity.getString(R.string.pref_camera_dis_value_disable));
                 mUI.overrideSettings(CameraSettings.KEY_DIS,
                         mActivity.getString(R.string.pref_camera_dis_value_disable));
-                RotateTextToast.makeText(mActivity, R.string.video_quality_4k_disable_IS,
+                Toast.makeText(mActivity, R.string.video_quality_4k_disable_IS,
                         Toast.LENGTH_LONG).show();
             } else {
                 Log.e(TAG, "Not supported IS mode = " +
@@ -2521,7 +2508,7 @@ public class VideoModule implements CameraModule,
         if (biggestSize.width <= videoWidth || biggestSize.height <= videoHeight) {
             if (disMode.equals("enable")) {
                 Log.v(TAG,"DIS is not supported for this video quality");
-                RotateTextToast.makeText(mActivity, R.string.error_app_unsupported_dis,
+                Toast.makeText(mActivity, R.string.error_app_unsupported_dis,
                                Toast.LENGTH_LONG).show();
                 mParameters.set(CameraSettings.KEY_QC_DIS_MODE, "disable");
                 mUI.overrideSettings(CameraSettings.KEY_DIS,"disable");
@@ -2706,7 +2693,7 @@ public class VideoModule implements CameraModule,
             // We need to restart the preview if preview size is changed.
             Size size = mParameters.getPreviewSize();
             if (size.width != mDesiredPreviewWidth
-                    || size.height != mDesiredPreviewHeight || mRestartPreview) {
+                    || size.height != mDesiredPreviewHeight) {
 
                 stopPreview();
                 resizeForPreviewAspectRatio();
@@ -2714,7 +2701,6 @@ public class VideoModule implements CameraModule,
             } else {
                 setCameraParameters();
             }
-            mRestartPreview = false;
             mUI.updateOnScreenIndicators(mParameters, mPreferences);
             Storage.setSaveSDCard(
                 mPreferences.getString(CameraSettings.KEY_CAMERA_SAVEPATH, "0").equals("1"));
@@ -2920,7 +2906,7 @@ public class VideoModule implements CameraModule,
     }
 
     private void showTapToSnapshotToast() {
-        new RotateTextToast(mActivity, R.string.video_snapshot_hint, 0).show();
+        Toast.makeText(mActivity, R.string.video_snapshot_hint,Toast.LENGTH_SHORT).show();
         // Clear the preference.
         Editor editor = mPreferences.edit();
         editor.putBoolean(CameraSettings.KEY_VIDEO_FIRST_USE_HINT_SHOWN, false);

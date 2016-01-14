@@ -199,7 +199,6 @@
 
     <string name="pref_camera_iso_entry_auto">Auto</string>
     <string name="pref_camera_iso_entry_isodeblur">Auto (HJR)</string>
-    <string name="pref_camera_iso_entry_iso50">ISO50</string>
     <string name="pref_camera_iso_entry_iso100">ISO100</string>
     <string name="pref_camera_iso_entry_iso125">ISO125</string>
     <string name="pref_camera_iso_entry_iso150">ISO150</string>

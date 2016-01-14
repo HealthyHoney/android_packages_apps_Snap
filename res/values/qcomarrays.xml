@@ -390,7 +390,6 @@
     <string-array name="pref_camera_iso_entries" translatable="false">
         <item>@string/pref_camera_iso_entry_auto</item>
         <item>@string/pref_camera_iso_entry_isodeblur</item>
-        <item>@string/pref_camera_iso_entry_iso50</item>
         <item>@string/pref_camera_iso_entry_iso100</item>
         <item>@string/pref_camera_iso_entry_iso125</item>
         <item>@string/pref_camera_iso_entry_iso150</item>
@@ -421,7 +420,6 @@
     <string-array name="pref_camera_iso_entryvalues" translatable="false">
         <item>auto</item>
         <item>ISO_HJR</item>
-        <item>ISO50</item>
         <item>ISO100</item>
         <item>ISO125</item>
         <item>ISO150</item>

@@ -852,7 +852,7 @@ public class VideoModule implements CameraModule,
             } else {
                 // check for highest quality supported
                 videoQuality = CameraSettings.getSupportedHighestVideoQuality(
-                        mCameraId, mParameters);
+                        mActivity, mCameraId, mParameters);
             }
             mPreferences.edit().putString(CameraSettings.KEY_VIDEO_QUALITY, videoQuality).apply();
         }
@@ -1322,7 +1322,7 @@ public class VideoModule implements CameraModule,
                     R.array.pref_video_focusmode_default_array);
             mFocusManager = new FocusOverlayManager(mPreferences, defaultFocusModes,
                     mParameters, this, mirror,
-                    mActivity.getMainLooper(), mUI);
+                    mActivity.getMainLooper(), mUI.getFocusRing());
         }
     }
 

@@ -1255,9 +1255,9 @@ public class PhotoModule
                     mCameraDevice.cancelAutoFocus();
                 }
             } else if (((mCameraState != LONGSHOT) && (mReceivedSnapNum == mBurstSnapNum))
-                        || isLongshotDone()){
+                        || isLongshotDone()) {
                 mUI.enableShutter(true);
-                mFocusManager.resetTouchFocus();
+                mFocusManager.restartTouchFocusTimer();
                 if (CameraUtil.FOCUS_MODE_CONTINUOUS_PICTURE.equals(mFocusManager.getFocusMode(false))
                         || CameraUtil.FOCUS_MODE_MW_CONTINUOUS_PICTURE.equals(mFocusManager.getFocusMode(false))) {
                     mCameraDevice.cancelAutoFocus();
@@ -1631,9 +1631,16 @@ public class PhotoModule
                     new JpegPictureCallback(loc));
             setCameraState(SNAPSHOT_IN_PROGRESS);
 
-            // LGE G4: Preview needs to be restarted when flash got used while luminance is low
-            if (CameraUtil.isLowLuminance(mParameters)) {
-                setupPreview();
+            // LGE G4: Preview needs to be restarted when flash got used
+            if (CameraUtil.isSupported(mParameters, CameraSettings.KEY_LUMINANCE_CONITION)) {
+                String flashMode = mPreferences.getString(
+                                    CameraSettings.KEY_FLASH_MODE,
+                                    mActivity.getString(R.string.pref_camera_flashmode_default));
+                if (flashMode.equals(Parameters.FLASH_MODE_ON) || 
+                        (!flashMode.equals(Parameters.FLASH_MODE_OFF) &&
+                        CameraUtil.isLowLuminance(mParameters))) {
+                    setupPreview();
+                }
             }
         }
 
